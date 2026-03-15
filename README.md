@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# User Management System
 
-## Getting Started
+A comprehensive user management system built with Next.js, featuring authentication, role-based access control, and admin notifications.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **User Authentication**: Secure signup and login with JWT tokens
+- **Role-based Authorization**: Admin and user roles with different permissions
+- **Admin Dashboard**: User management with data tables, search, and filtering
+- **Notifications System**: Admins can create and manage notifications
+- **Modern UI**: Built with ShadCN UI components and Tailwind CSS
+
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js 18+
+- MongoDB (local or cloud)
+
+### MongoDB Setup
+
+You have two options for MongoDB:
+
+#### Option 1: Local MongoDB
+1. Download and install MongoDB from [mongodb.com](https://www.mongodb.com/try/download/community)
+2. Start MongoDB service
+3. Update `.env.local` with your local connection string
+
+#### Option 2: MongoDB Atlas (Cloud - Recommended)
+1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/atlas)
+2. Create a new cluster
+3. Get your connection string
+4. Update `.env.local` with your Atlas connection string
+
+### Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```env
+MONGODB_URI=mongodb://localhost:27017/userbase
+# OR for Atlas: mongodb+srv://username:password@cluster.mongodb.net/userbase
+
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+4. Open [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Usage
 
-## Learn More
+### User Registration
+- Visit `/signup` to create a new account
+- Default role is 'user'
+- Admins can be created through the admin dashboard
 
-To learn more about Next.js, take a look at the following resources:
+### Admin Features
+- Login with admin credentials
+- Access `/admin/dashboard` for user management
+- Access `/admin/notifications` for notification management
+- Create, edit, and delete users
+- Send notifications to specific users or roles
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## API Endpoints
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/verify` - Token verification
+- `GET /api/users` - Get all users (admin only)
+- `POST /api/users` - Create user (admin only)
+- `PUT /api/users/[id]` - Update user (admin only)
+- `DELETE /api/users/[id]` - Delete user (admin only)
+- `GET /api/notifications` - Get notifications
+- `POST /api/notifications` - Create notification (admin only)
+- `PUT /api/notifications/[id]` - Update notification (admin only)
+- `DELETE /api/notifications/[id]` - Delete notification (admin only)
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Frontend**: Next.js 16, React 19, TypeScript
+- **UI**: ShadCN UI, Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: MongoDB with Mongoose
+- **Authentication**: JWT tokens
+- **Styling**: Tailwind CSS
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+app/
+├── api/                    # API routes
+│   ├── auth/              # Authentication endpoints
+│   ├── users/             # User management
+│   └── notifications/     # Notification management
+├── admin/                 # Admin pages
+│   ├── dashboard/         # User management dashboard
+│   └── notifications/     # Notification management
+├── login/                 # Login page
+├── signup/                # Signup page
+└── page.tsx              # Home page
+
+lib/
+├── models/               # MongoDB models
+├── context/              # React context
+└── auth.ts              # Authentication utilities
+
+components/
+├── ui/                   # ShadCN UI components
+└── frontend/             # App-specific components
+```

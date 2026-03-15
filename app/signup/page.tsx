@@ -1,12 +1,38 @@
 "use client"
 
 import Link from "next/link"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/lib/context/AuthContext"
 
 export default function SignupPage() {
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const { signup } = useAuth()
+  const router = useRouter()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setIsLoading(true)
+
+    try {
+      await signup(name, email, password)
+      router.push("/")
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 font-sans text-white">
       <main className="mx-auto w-full max-w-4xl px-6 py-16">
@@ -36,18 +62,35 @@ export default function SignupPage() {
               <CardTitle className="text-xl">Create account</CardTitle>
             </CardHeader>
             <CardContent>
-              <form className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className="text-red-400 text-sm">{error}</div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-slate-200">
                     Full name
                   </Label>
-                  <Input id="name" type="text" placeholder="Enter your name" />
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-slate-200">
                     Email
                   </Label>
-                  <Input id="email" type="email" placeholder="you@example.com" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-slate-200">
@@ -57,22 +100,13 @@ export default function SignupPage() {
                     id="password"
                     type="password"
                     placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role" className="text-slate-200">
-                    Role
-                  </Label>
-                  <select
-                    id="role"
-                    className="h-8 w-full rounded-lg border border-white/10 bg-slate-950/40 px-2.5 text-sm text-white focus:border-sky-400 focus:outline-none"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-                <Button className="w-full" type="submit">
-                  Create account
+                <Button className="w-full" type="submit" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Create account"}
                 </Button>
                 <p className="text-center text-sm text-slate-400">
                   Already have an account?{" "}

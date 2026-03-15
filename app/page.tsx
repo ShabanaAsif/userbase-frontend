@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Alert,AlertDescription,AlertTitle,} from "@/components/ui/alert"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -7,6 +8,14 @@ import { Card,CardContent,CardDescription,CardHeader,CardTitle, } from "@/compon
 import { Dialog,DialogClose,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle,DialogTrigger,} from "@/components/ui/dialog"
 import { Table, TableBody,TableCell,TableHead,TableHeader,TableRow,} from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/lib/context/AuthContext"
+
+interface Notification {
+  _id: string
+  title: string
+  message: string
+  createdAt: string
+}
 
 const stats = [
   { label: "Active users", value: "1,248", note: "+18% this month" },
@@ -23,9 +32,47 @@ const activity = [
 ]
 
 export default function Home() {
+  const { user, token } = useAuth()
+  const [notifications, setNotifications] = useState<Notification[]>([])
+
+  useEffect(() => {
+    if (user && token) {
+      fetchNotifications()
+    }
+  }, [user, token])
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch('/api/notifications', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setNotifications(data.notifications.slice(0, 3)) // Show latest 3
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error)
+    }
+  }
+
   return (
     <div className="min-h-full bg-zinc-950 font-sans text-white">
       <main className="mx-auto w-full max-w-6xl px-6 py-20">
+        {user && notifications.length > 0 && (
+          <div className="mb-6 space-y-2">
+            {notifications.map((notification) => (
+              <Alert key={notification._id} className="border-blue-500/20 bg-blue-500/10 text-white">
+                <AlertTitle>{notification.title}</AlertTitle>
+                <AlertDescription>
+                  {notification.message}
+                </AlertDescription>
+              </Alert>
+            ))}
+          </div>
+        )}
+
         <Alert className="mb-6 border-white/10 bg-white/5 text-white">
           <AlertTitle>System status</AlertTitle>
           <AlertDescription>
@@ -40,61 +87,84 @@ export default function Home() {
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
               <p className="text-xs uppercase tracking-[0.3em] text-zinc-400">
-                Welcome
+                Welcome{user ? `, ${user.name}` : ''}
               </p>
               <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
                 User Management System
               </h1>
               <p className="mt-4 text-lg text-zinc-300">
-                Orchestrate users, roles, and permissions with a calm, focused
-                interface built for clarity.
+                {user
+                  ? `Manage your account and access ${user.role === 'admin' ? 'administrative features' : 'your data'} with our secure platform.`
+                  : 'Orchestrate users, roles, and permissions with a calm, focused interface built for clarity.'
+                }
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/login"
-                  className={cn(buttonVariants({ size: "lg" }))}
-                >
-                  Get Started
-                </Link>
-                <Link
-                  href="/signup"
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "lg" })
-                  )}
-                >
-                  Create Account
-                </Link>
-                <Dialog>
-                  <DialogTrigger
-                    className={cn(
-                      buttonVariants({ variant: "ghost", size: "lg" })
-                    )}
-                  >
-                    Quick tour
-                  </DialogTrigger>
-                  <DialogContent className="bg-zinc-950 text-white">
-                    <DialogHeader>
-                      <DialogTitle>Quick tour</DialogTitle>
-                      <DialogDescription className="text-zinc-400">
-                        A 30-second overview of the core workflow.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-3 text-sm text-zinc-300">
-                      <p>1. Invite users and assign a default role.</p>
-                      <p>2. Configure access rules per team.</p>
-                      <p>3. Review activity in real time.</p>
-                    </div>
-                    <DialogFooter>
-                      <DialogClose
+                {!user ? (
+                  <>
+                    <Link
+                      href="/login"
+                      className={cn(buttonVariants({ size: "lg" }))}
+                    >
+                      Get Started
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className={cn(
+                        buttonVariants({ variant: "outline", size: "lg" })
+                      )}
+                    >
+                      Create Account
+                    </Link>
+                    <Dialog>
+                      <DialogTrigger
                         className={cn(
-                          buttonVariants({ variant: "secondary" })
+                          buttonVariants({ variant: "ghost", size: "lg" })
                         )}
                       >
-                        Got it
-                      </DialogClose>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                        Quick tour
+                      </DialogTrigger>
+                      <DialogContent className="bg-zinc-950 text-white">
+                        <DialogHeader>
+                          <DialogTitle>Quick tour</DialogTitle>
+                          <DialogDescription className="text-zinc-400">
+                            A 30-second overview of the core workflow.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-3 text-sm text-zinc-300">
+                          <p>1. Invite users and assign a default role.</p>
+                          <p>2. Configure access rules per team.</p>
+                          <p>3. Review activity in real time.</p>
+                        </div>
+                        <DialogFooter>
+                          <DialogClose
+                            className={cn(
+                              buttonVariants({ variant: "secondary" })
+                            )}
+                          >
+                            Got it
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </>
+                ) : (
+                  <>
+                    {user.role === 'admin' && (
+                      <Link
+                        href="/admin/dashboard"
+                        className={cn(buttonVariants({ size: "lg" }))}
+                      >
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    <Link
+                      href="/profile"
+                      className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+                    >
+                      My Profile
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
 
