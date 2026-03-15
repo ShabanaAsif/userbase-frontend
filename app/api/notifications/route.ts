@@ -14,14 +14,24 @@ export async function GET(request: NextRequest) {
     await dbConnect();
 
     // Get notifications for the user based on role or specific targeting
-    const notifications = await Notification.find({
-      $or: [
-        { targetUsers: user.userId },
-        { targetRoles: user.role },
-        { targetRoles: { $exists: false }, targetUsers: { $exists: false } } // public notifications
-      ],
-      isActive: true,
-    }).populate('createdBy', 'name').sort({ createdAt: -1 });
+    let notifications;
+    if (user.role === 'admin') {
+      // Admins see all notifications they created or all if they want to manage
+      notifications = await Notification.find({})
+        .populate('createdBy', 'name')
+        .sort({ createdAt: -1 });
+    } else {
+      // Regular users see only unread notifications targeted at them
+      notifications = await Notification.find({
+        $or: [
+          { targetUsers: user.userId },
+          { targetRoles: user.role },
+          { targetRoles: { $exists: false }, targetUsers: { $exists: false } } // public notifications
+        ],
+        isActive: true,
+        readBy: { $ne: user.userId }, // Only unread notifications
+      }).populate('createdBy', 'name').sort({ createdAt: -1 });
+    }
 
     return NextResponse.json({ notifications });
   } catch (error) {

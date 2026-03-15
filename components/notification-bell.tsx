@@ -45,10 +45,24 @@ export function NotificationBell() {
     }
   }
 
-  const markAsRead = (id: string) => {
-    // In a real app, you'd call an API to mark as read
-    setNotifications(prev => prev.filter(n => n._id !== id))
-    setUnreadCount(prev => Math.max(0, prev - 1))
+  const markAsRead = async (id: string) => {
+    try {
+      const res = await fetch(`/api/notifications/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: 'markAsRead' }),
+      });
+
+      if (res.ok) {
+        setNotifications(prev => prev.filter(n => n._id !== id));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   }
 
   if (!user) return null

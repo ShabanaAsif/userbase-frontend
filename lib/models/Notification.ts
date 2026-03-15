@@ -30,6 +30,10 @@ const NotificationSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  readBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
 });
 
 export default mongoose.models.Notification || mongoose.model('Notification', NotificationSchema);

@@ -6,14 +6,36 @@ import { authenticateRequest } from '@/lib/auth';
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const authUser = authenticateRequest(request);
-    if (!authUser || authUser.role !== 'admin') {
+    if (!authUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     await dbConnect();
 
     const { id } = params;
-    const { title, message, targetUsers, targetRoles, isActive } = await request.json();
+    const body = await request.json();
+    const { action } = body;
+
+    if (action === 'markAsRead') {
+      const notification = await Notification.findByIdAndUpdate(
+        id,
+        { $addToSet: { readBy: authUser.userId } },
+        { new: true }
+      );
+
+      if (!notification) {
+        return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({ message: 'Notification marked as read' });
+    }
+
+    // Original update logic for admins
+    if (authUser.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { title, message, targetUsers, targetRoles, isActive } = body;
 
     const notification = await Notification.findByIdAndUpdate(
       id,

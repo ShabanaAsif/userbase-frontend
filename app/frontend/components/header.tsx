@@ -3,6 +3,7 @@
 import { FC } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { NotificationBell } from "@/components/notification-bell";
 
 interface HeaderProps {
   role: string; // Role of the current user, either 'admin' or 'user'
@@ -66,6 +67,9 @@ const Header: FC<HeaderProps> = ({ role, isAuthenticated, onLogout }) => {
                 <Link href="/profile" className="hover:text-gray-400">
                   Profile
                 </Link>
+              </li>
+              <li>
+                <NotificationBell />
               </li>
               {role === "admin" && (
                 <>
